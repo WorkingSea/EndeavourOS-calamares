@@ -167,6 +167,9 @@ Main() {
         cp -f /etc/skel/.bashrc /tmp/$chroot_path/home/$NEW_USER/.bashrc
     fi
     cp -f /etc/calamares/files/environment /tmp/$chroot_path/etc/environment
+    cp -n /usr/bin/device-info /tmp/$chroot_path/usr/bin/.
+    cp -n /usr/bin/eos-connection-checker /tmp/$chroot_path/usr/bin/.
+
     #cp -rf /home/liveuser/.gnupg/gpg.conf /tmp/$chroot_path/etc/pacman.d/gnupg/gpg.conf
 
     _copy_files

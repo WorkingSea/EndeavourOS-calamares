@@ -620,6 +620,9 @@ Main() {
     lsblk -f -o+SIZE
     fdisk -l
 
+    # Remove device-info & eos-connection-checker if they aren't installed
+    [[ $(pacman -Q eos-bash-shared  2</dev/null) ]] || rm /bin/device-info /bin/eos-connection-checker
+
     _c_c_s_msg info "$filename done."
 }
 
