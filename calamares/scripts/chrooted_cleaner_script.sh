@@ -7,6 +7,7 @@
 # ISO-NEXT specific cleanup removals and additions (08-2021) @killajoe and @manuel
 # 01-2022 passing in online and username as params - @dalto
 # 04-2022 small code re-organization - @manuel
+# 10-2022 remove unused code and support for dracut/mkinitcpio switch
 
 _c_c_s_msg() {            # use this to provide all user messages (info, warning, error, ...)
     local type="$1"
@@ -202,7 +203,6 @@ _clean_offline_packages(){
         arch-install-scripts
         memtest86+
         mkinitcpio-archiso
-        mkinitcpio
         mkinitcpio-openswap
         mkinitcpio-nfs-utils
         mkinitcpio-busybox
@@ -479,9 +479,6 @@ _clean_up(){
         _c_c_s_msg warning "program $xx was not found"
     fi
 
-    # enable TRIM systemd service
-    # systemctl enable fstrim.timer # testing calamares services-systemd module calamares 3.2.45 update
-
     # run possible user-given commands
     _RunUserCommands
 }
@@ -514,52 +511,6 @@ _desktop_i3(){
     chown -R $NEW_USER:$NEW_USER /home/$NEW_USER/
     popd >/dev/null
     rm -rf endeavouros-i3wm-setup
-}
-
-_de_wm_config(){
-    local desktops_lowercase="$(ls -1 /usr/share/xsessions/*.desktop 2>/dev/null | tr '[:upper:]' '[:lower:]' | sed -e 's|\.desktop$||' -e 's|^/usr/share/xsessions/||')"
-    local desktop
-    local i3_added=no # break for loop
-
-    for desktop in $desktops_lowercase ; do
-        case "$desktop" in
-            i3*)
-                if [ "$i3_added" = "no" ] ; then
-                    i3_added=yes
-                    _desktop_i3 
-                fi
-                ;;
-        esac
-    done
-}
-
-_setup_personal() {
-    local file=/tmp/setup.sh
-    local tmpdir
-    if [ -r $file ] ; then
-        # setup.sh was found, so run it
-        tmpdir=$(mktemp -d)     # $tmpdir refers to a unique folder under /tmp
-        pushd $tmpdir >/dev/null
-        sh $file
-        popd >/dev/null
-        rm -rf $tmpdir
-    else
-        _c_c_s_msg info "$FUNCNAME: $file not found." >&2
-    fi
-}
-
-_change_config_options(){
-    #set lightdm.conf to logind-check-graphical=true
-    sed -i 's?#logind-check-graphical=false?logind-check-graphical=true?' /etc/lightdm/lightdm.conf
-    sed -i 's?#greeter-session=example-gtk-gnome?greeter-session=lightdm-slick-greeter?' /etc/lightdm/lightdm.conf
-    sed -i 's?#allow-user-switching=true?allow-user-switching=true?' /etc/lightdm/lightdm.conf
-}
-
-_remove_gnome_software(){
-    _remove_a_pkg gnome-software
-}
-_remove_discover(){
-    _remove_a_pkg discover
 }
 
 _run_hotfix_end() {
@@ -605,11 +556,6 @@ Main() {
     _check_install_mode
     _endeavouros
     _virtual_machines
-    #_change_config_options
-    #_remove_gnome_software
-    #_remove_discover
-    #_de_wm_config
-    #_setup_personal
     _clean_up
     _run_hotfix_end
 
