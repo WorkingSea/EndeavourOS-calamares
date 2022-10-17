@@ -8,4 +8,4 @@ esac
 
 [[ $(pacman -Q "${pkgname}"  2</dev/null) ]] && pacman -R --noconfirm "${pkgname}"
 
-
+exit 0
