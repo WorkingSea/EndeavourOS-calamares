@@ -516,6 +516,17 @@ _desktop_i3(){
     rm -rf endeavouros-i3wm-setup
 }
 
+_show_disk_and_partition_info() {
+    local cmd
+    local cmds=( "lsblk -f -o+SIZE"
+                 "fdisk -l"
+               )
+    for cmd in "${cmds[@]}" ; do
+        _c_c_s_msg info "$cmd"
+        $cmd
+    done
+}
+
 _run_hotfix_end() {
     local file=hotfix-end.bash
     local type=""
@@ -561,13 +572,10 @@ Main() {
     _virtual_machines
     _clean_up
     _run_hotfix_end
+    _show_disk_and_partition_info
 
     rm -rf /etc/calamares /opt/extra-drivers
     [[ -f "/boot/grub/grub.cfg" ]] && grub-mkconfig -o /boot/grub/grub.cfg
-
-    # show disk and partition info
-    lsblk -f -o+SIZE
-    fdisk -l
 
     # Remove device-info & eos-connection-checker if they aren't installed
     [[ $(pacman -Q eos-bash-shared  2</dev/null) ]] || rm /bin/device-info /bin/eos-connection-checker
