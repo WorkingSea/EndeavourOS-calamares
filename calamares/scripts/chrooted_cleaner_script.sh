@@ -482,6 +482,10 @@ _clean_up(){
         _c_c_s_msg warning "program $xx was not found"
     fi
 
+    # change log file permissions
+    [ -r /var/log/endeavour-install.log ] && chmod 0600      /var/log/endeavour-install.log
+    [ -r /var/log/Calamares.log ]         && chown root:root /var/log/Calamares.log
+
     # run possible user-given commands
     _RunUserCommands
 }
