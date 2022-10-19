@@ -226,6 +226,9 @@ _clean_offline_packages(){
         calamares_config_ce
         calamares_config_default
         calamares_current
+        calamares_config_ce-git
+        calamares_config_default-git
+        calamares-git
         ckbcomp
         kvantum
         qt5ct
