@@ -12,6 +12,7 @@ properties:
     kernelName:  { type: string }
     timeout:  { type: string }  # Inserted verbatim
     kernelParams: { type: array, items: { type: string } }
+    refindKernelList: { type: array, items: { type: string } }
 
     # Programs
     grubInstall:  { type: string }

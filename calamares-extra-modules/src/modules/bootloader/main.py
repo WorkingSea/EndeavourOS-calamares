@@ -20,6 +20,7 @@
 #   Calamares is Free Software: see the License-Identifier above.
 #
 
+import fileinput
 import os
 import shutil
 import subprocess
@@ -750,6 +751,28 @@ def efi_partitions(efi_boot_path):
     return [p for p in libcalamares.globalstorage.value("partitions") if p["mountPoint"] == efi_boot_path]
 
 
+def update_refind_config(efi_directory, installation_root_path):
+    """
+    :param efi_directory: The path to the efi directory relative to the root
+    :param installation_root_path: The path to the root of the installation
+    """
+    try:
+        kernel_list = libcalamares.job.configuration["refindKernelList"]
+    except KeyError:
+        libcalamares.utils.warning('refindKernelList not set.  Skipping updating refind.conf')
+        return
+
+    # Update the config in the file
+    for line in fileinput.input(installation_root_path + efi_directory + "/EFI/refind/refind.conf", inplace=True):
+        line = line.strip()
+        if line.startswith("#extra_kernel_version_strings") or line.startswith("extra_kernel_version_strings"):
+            line = line.lstrip("#")
+            for kernel in kernel_list:
+                if kernel not in line:
+                    line += "," + kernel
+        print(line)
+
+
 def install_refind(efi_directory):
     try:
         installation_root_path = libcalamares.globalstorage.value("rootMountPoint")
@@ -773,6 +796,8 @@ def install_refind(efi_directory):
             elif line.startswith('"Boot to single-user mode"'):
                 line = f'"Boot to single-user mode"    "{kernel_params}" single'
             refind_file.write(line + "\n")
+
+    update_refind_config(efi_directory, installation_root_path)
 
 
 def prepare_bootloader(fw_type):
