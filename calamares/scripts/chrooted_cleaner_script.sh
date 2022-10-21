@@ -232,6 +232,9 @@ _clean_offline_packages(){
         ckbcomp
         kvantum
         qt5ct
+        
+        # arm qemu dependency
+        qemu-arm-aarch64-static-bin
     )
 
     # @ does one by one to avoid errors in the entire process
