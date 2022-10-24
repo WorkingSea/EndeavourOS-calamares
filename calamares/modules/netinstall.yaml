@@ -237,7 +237,7 @@
         description: "XFCE4 needed packages"
         selected: false
         packages:
-         - blueberry
+         - blueman
          - file-roller
          - galculator
          - gvfs
