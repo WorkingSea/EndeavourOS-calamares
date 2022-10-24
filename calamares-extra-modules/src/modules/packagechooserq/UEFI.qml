@@ -91,63 +91,6 @@ import QtQuick.Layouts 1.3
                     width: 450
                     height: 80
                     anchors.centerIn: parent
-                    text: qsTr("rEFInd is highly customizable boot manager.  It supports the widest variety of scenarios but may require custom configuration for advanced setups.")
-                    font.pointSize: 10
-                    anchors.verticalCenterOffset: 0
-                    anchors.horizontalCenterOffset: 0
-                    wrapMode: Text.WordWrap
-                }
-
-                Switch {
-                    id: element1
-                    x: 500
-                    y: 90
-                    width: 187
-                    height: 14
-                    text: qsTr("Refind")
-                    checked: false
-                    hoverEnabled: true
-                    ButtonGroup.group: switchGroup
-
-                    indicator: Rectangle {
-                        implicitWidth: 40
-                        implicitHeight: 14
-                        radius: 10
-                        color: element1.checked ? "#3498db" : "#B9B9B9"
-                        border.color: element1.checked ? "#3498db" : "#cccccc"
-
-                        Rectangle {
-                            x: element1.checked ? parent.width - width : 0
-                            y: (parent.height - height) / 2
-                            width: 20
-                            height: 20
-                            radius: 10
-                            color: element1.down ? "#cccccc" : "#ffffff"
-                            border.color: element1.checked ? (element1.down ? "#3498db" : "#3498db") : "#999999"
-                        }
-                    }
-
-                    onCheckedChanged: {
-                        if ( ! checked ) {
-                            print("refind not used")
-                        }
-                        else {
-                            print("Refind")
-                            config.packageChoice = "refind"
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                width: 700
-                height: 110
-                radius: 10
-                border.width: 0
-                Text {
-                    width: 450
-                    height: 80
-                    anchors.centerIn: parent
                     text: qsTr("Grub a longstanding bootloader for Linux and is the best choice for individuals wanting to boot off of btrfs snapshots.")
                     font.pointSize: 10
                     anchors.verticalCenterOffset: 0
