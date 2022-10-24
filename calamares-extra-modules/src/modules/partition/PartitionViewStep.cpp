@@ -444,11 +444,12 @@ PartitionViewStep::onActivate()
     // Alter GS based on prior module
     QString efiLocation;
     if( Calamares::JobQueue::instance()->globalStorage()->contains("packagechooser_packagechooserq")) {
-        QString bootLoader = Calamares::JobQueue::instance()->globalStorage()->value("packagechooser_packagechooserq").toString();
-        cDebug() << "The bootloader is " << bootLoader;
-        if( bootLoader.toLower() == "grub") {
+        m_bootloader = Calamares::JobQueue::instance()->globalStorage()->value("packagechooser_packagechooserq").toString();
+
+        cDebug() << "The bootloader is " << m_bootloader;
+        if( m_bootloader.toLower() == "grub") {
             efiLocation = "/boot/efi";
-        } else if( bootLoader.toLower() == "refind" ) {
+        } else if( m_bootloader.toLower() == "refind" ) {
             efiLocation = "/boot";
         } else {
             efiLocation = "/efi";
@@ -540,6 +541,27 @@ shouldWarnForGPTOnBIOS( const PartitionCoreModule* core )
 void
 PartitionViewStep::onLeave()
 {
+    const QString espMountPoint
+        = Calamares::JobQueue::instance()->globalStorage()->value( "efiSystemPartition" ).toString();
+    Partition* esp = m_core->findPartitionByMountPoint( espMountPoint );
+
+    // Check the size of the ESP for systemd-boot
+    if ( !PartUtils::isEfiFilesystemSuitableSize( esp ) && m_bootloader.trimmed() == "systemd-boot")
+    {
+        const qint64 atLeastBytes = static_cast< qint64 >( PartUtils::efiFilesystemMinimumSize() );
+        const auto atLeastMiB = CalamaresUtils::BytesToMiB( atLeastBytes );
+
+        QString message = tr( "EFI partition too small" );
+        QString description = tr( "The size of the EFI partition is smaller than recommended "
+                                  "for systemd-boot.  If you proceed with this partition size, "
+                                  "the installation may fail or the system may not boot.  "
+                                  "The recommended minimum size is %1 MiB").arg(atLeastMiB);
+
+        QMessageBox mb( QMessageBox::Warning, message, description, QMessageBox::Ok, m_choicePage );
+        Calamares::fixButtonLabels( &mb );
+        mb.exec();
+    }
+
     if ( m_widget->currentWidget() == m_choicePage )
     {
         m_choicePage->onLeave();
@@ -551,29 +573,24 @@ PartitionViewStep::onLeave()
     {
         if ( PartUtils::isEfiSystem() )
         {
-            const QString espMountPoint
-                = Calamares::JobQueue::instance()->globalStorage()->value( "efiSystemPartition" ).toString();
-            Partition* esp = m_core->findPartitionByMountPoint( espMountPoint );
-
             QString message;
             QString description;
 
             Logger::Once o;
 
             const bool okType = esp && PartUtils::isEfiFilesystemSuitableType( esp );
-            const bool okSize = esp && PartUtils::isEfiFilesystemSuitableSize( esp );
             const bool okFlag = esp && PartUtils::isEfiBootable( esp );
 
             if ( !esp )
             {
                 message = tr( "No EFI system partition configured" );
             }
-            else if ( !( okType && okSize && okFlag ) )
+            else if ( !( okType && okFlag ) )
             {
                 message = tr( "EFI system partition configured incorrectly" );
             }
 
-            if ( !esp || !( okType && okSize && okFlag ) )
+            if ( !esp || !( okType && okFlag ) )
             {
                 description = tr( "An EFI system partition is necessary to start %1."
                                   "<br/><br/>"
@@ -593,14 +610,6 @@ PartitionViewStep::onLeave()
                 cDebug() << o << "ESP wrong type";
                 description.append( ' ' );
                 description.append( tr( "The filesystem must have type FAT32." ) );
-            }
-            if ( !okSize )
-            {
-                cDebug() << o << "ESP too small";
-                const qint64 atLeastBytes = static_cast< qint64 >( PartUtils::efiFilesystemMinimumSize() );
-                const auto atLeastMiB = CalamaresUtils::BytesToMiB( atLeastBytes );
-                description.append( ' ' );
-                description.append( tr( "The filesystem must be at least %1 MiB in size." ).arg( atLeastMiB ) );
             }
             if ( !okFlag )
             {
