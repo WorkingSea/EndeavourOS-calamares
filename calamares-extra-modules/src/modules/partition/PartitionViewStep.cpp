@@ -541,25 +541,28 @@ shouldWarnForGPTOnBIOS( const PartitionCoreModule* core )
 void
 PartitionViewStep::onLeave()
 {
-    const QString espMountPoint
-        = Calamares::JobQueue::instance()->globalStorage()->value( "efiSystemPartition" ).toString();
-    Partition* esp = m_core->findPartitionByMountPoint( espMountPoint );
-
     // Check the size of the ESP for systemd-boot
-    if ( !PartUtils::isEfiFilesystemSuitableSize( esp ) && m_bootloader.trimmed() == "systemd-boot")
+    if ( PartUtils::isEfiSystem() && m_bootloader.trimmed() == "systemd-boot" )
     {
-        const qint64 atLeastBytes = static_cast< qint64 >( PartUtils::efiFilesystemMinimumSize() );
-        const auto atLeastMiB = CalamaresUtils::BytesToMiB( atLeastBytes );
+        const QString espMountPoint
+            = Calamares::JobQueue::instance()->globalStorage()->value( "efiSystemPartition" ).toString();
+        Partition* esp = m_core->findPartitionByMountPoint( espMountPoint );
 
-        QString message = tr( "EFI partition too small" );
-        QString description = tr( "The size of the EFI partition is smaller than recommended "
-                                  "for systemd-boot.  If you proceed with this partition size, "
-                                  "the installation may fail or the system may not boot.  "
-                                  "The recommended minimum size is %1 MiB").arg(atLeastMiB);
+        if ( !PartUtils::isEfiFilesystemSuitableSize( esp ) )
+        {
+            const qint64 atLeastBytes = static_cast< qint64 >( PartUtils::efiFilesystemMinimumSize() );
+            const auto atLeastMiB = CalamaresUtils::BytesToMiB( atLeastBytes );
 
-        QMessageBox mb( QMessageBox::Warning, message, description, QMessageBox::Ok, m_choicePage );
-        Calamares::fixButtonLabels( &mb );
-        mb.exec();
+            QString message = tr( "EFI partition too small" );
+            QString description = tr( "The size of the EFI partition is smaller than recommended "
+                                      "for systemd-boot.  If you proceed with this partition size, "
+                                      "the installation may fail or the system may not boot.  "
+                                      "The recommended minimum size is %1 MiB").arg(atLeastMiB);
+
+            QMessageBox mb( QMessageBox::Warning, message, description, QMessageBox::Ok, m_choicePage );
+            Calamares::fixButtonLabels( &mb );
+            mb.exec();
+        }
     }
 
     if ( m_widget->currentWidget() == m_choicePage )
@@ -573,6 +576,10 @@ PartitionViewStep::onLeave()
     {
         if ( PartUtils::isEfiSystem() )
         {
+            const QString espMountPoint
+                = Calamares::JobQueue::instance()->globalStorage()->value( "efiSystemPartition" ).toString();
+            Partition* esp = m_core->findPartitionByMountPoint( espMountPoint );
+
             QString message;
             QString description;
 
